@@ -1,0 +1,22 @@
+name: Combine Parts in Build
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  combine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Combine part files
+        run: |
+          cd Build
+          cat Build.wasm.000.part Build.wasm.001.part > Build.wasm
+          echo "Combined parts into Build.wasm"
