@@ -1,0 +1,47 @@
+name: Combine Parts
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  combine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify parts and combine
+        run: |
+          set -e
+          mkdir -p "ballr/Build"
+ 
+          if [[ -f "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb.000.part" && -f "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb.001.part" ]]; then
+            echo "All pieces found. Combining..."
+            cat "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb.000.part" "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb.001.part" > "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb"
+            echo "Combined -> ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb"
+            ls -lh "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb"
+          else
+            echo "ERROR: Missing one or more pieces."
+            exit 1
+          fi
+
+      - name: Commit and push combined file
+        run: |
+          set -e
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git rm -f -- "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb.000.part" "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb.001.part" || true
+          git add "ballr/Build/cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb"
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Combine parts into cb329eb1ef692e19f43f5fddf5d5b128.data.unityweb and remove pieces"
+            git push
+          fi
